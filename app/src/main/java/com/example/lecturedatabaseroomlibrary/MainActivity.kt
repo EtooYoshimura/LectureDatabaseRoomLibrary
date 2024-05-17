@@ -134,9 +134,61 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun openLectionEditor(lection: T_Lection) {
-        // ... код открытия редактора лекции
+    private fun openLectionEditor(lection: T_Lection?) {
+        val builder = AlertDialog.Builder(this)
+        val inflater = layoutInflater
+
+        // Создаем представление диалогового окна из макета
+        val dialogView = inflater.inflate(R.layout.dialog_edit_lection, null)
+
+        // Получаем ссылки на элементы представления диалогового окна
+        val titleEditText = dialogView.findViewById<EditText>(R.id.titleEditText)
+        val descriptionEditText = dialogView.findViewById<EditText>(R.id.descriptionEditText)
+
+        // Если lection не null, заполняем поля данными из lection
+        if (lection != null) {
+            titleEditText.setText(lection.title)
+            descriptionEditText.setText(lection.description)
+        }
+
+        builder.setView(dialogView)
+            .setPositiveButton("Save") { _, _ ->
+                val updatedTitle = titleEditText.text.toString()
+                val updatedDescription = descriptionEditText.text.toString()
+
+                // Если lection не null, обновляем существующую lection
+                if (lection != null) {
+                    UpdateLectionTask(lection.lectionId, updatedTitle, updatedDescription).execute()
+                } else {
+                    // Иначе, добавляем новую lection
+                    AddLectionTask(updatedTitle, updatedDescription).execute()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
+    private inner class UpdateLectionTask(
+        private val lectionId: Int?,
+        private val title: String,
+        private val description: String
+    ) : AsyncTask<Void, Void, Unit>() {
+
+        override fun doInBackground(vararg params: Void?): Unit {
+            val updatedLection = T_Lection(lectionId, title, description)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                withContext(Dispatchers.IO) {
+                    lectionDao.update(updatedLection)
+                }
+            }
+        }
+
+        override fun onPostExecute(result: Unit?) {
+            GetLectionsTask().execute()
+        }
+    }
+
+
 }
 
 
