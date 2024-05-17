@@ -1,10 +1,14 @@
 package com.example.lecturedatabaseroomlibrary
 
 import android.content.Context
+import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -49,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+
         // Инициализируйте DAO в фоновом потоке с помощью корутины
         CoroutineScope(Dispatchers.IO).launch {
             val db = Room.databaseBuilder(applicationContext, MainDb::class.java, "AppDatabase.db")
@@ -68,6 +73,16 @@ class MainActivity : AppCompatActivity() {
             // Получите список лекций из базы данных в фоновом потоке
             GetLectionsTask().execute()
         }
+
+
+
+        val vInfo = findViewById<ImageButton>(R.id.info_but)
+        vInfo.setOnClickListener {
+            val i= Intent(this, InfoActivity::class.java)
+            startActivity(i)
+        }
+
+
     }
 
     private fun showAddLectionDialog() {
@@ -82,15 +97,18 @@ class MainActivity : AppCompatActivity() {
         val descriptionEditText = dialogView.findViewById<EditText>(R.id.descriptionEditText)
 
         builder.setView(dialogView)
-            .setPositiveButton("Add") { _, _ ->
+            .setPositiveButton("Добавить") { _, _ ->
                 val title = titleEditText.text.toString()
                 val description = descriptionEditText.text.toString()
 
                 // Добавляем новую лекцию в базу данных в фоновом потоке
                 AddLectionTask(title, description).execute()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton("Отмена", null)
             .show()
+
+
+
     }
 
     private inner class AddLectionTask(
@@ -134,6 +152,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+
     private fun openLectionEditor(lection: T_Lection?) {
         val builder = AlertDialog.Builder(this)
         val inflater = layoutInflater
@@ -151,8 +170,22 @@ class MainActivity : AppCompatActivity() {
             descriptionEditText.setText(lection.description)
         }
 
-        builder.setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
+        // Создаем кнопку удаления и делаем ее видимой только для существующей лекции
+        val deleteButton = Button(this)
+        deleteButton.text = "Удалить"
+        deleteButton.visibility = if (lection != null) View.VISIBLE else View.GONE
+        deleteButton.setOnClickListener {
+            showDeleteConfirmationDialog(lection)
+        }
+
+        // Добавляем кнопку удаления в диалоговое окно
+        val layout = LinearLayout(this)
+        layout.orientation = LinearLayout.VERTICAL
+        layout.addView(dialogView)
+        layout.addView(deleteButton)
+
+        builder.setView(layout)
+            .setPositiveButton("Сохранить") { _, _ ->
                 val updatedTitle = titleEditText.text.toString()
                 val updatedDescription = descriptionEditText.text.toString()
 
@@ -164,9 +197,39 @@ class MainActivity : AppCompatActivity() {
                     AddLectionTask(updatedTitle, updatedDescription).execute()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton("Отмена", null)
             .show()
     }
+
+    private fun showDeleteConfirmationDialog(lection: T_Lection?) {
+        if (lection != null) {
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Удалить запись")
+                .setMessage("Вы действительно хотите удалить эту запись?")
+                .setPositiveButton("Да") { _, _ ->
+                    deleteLection(lection)
+                }
+                .setNegativeButton("Нет", null)
+            val dialog = builder.create()
+            dialog.show()
+        }
+    }
+
+    private fun deleteLection(lection: T_Lection) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            lection.lectionId?.let { lectionId ->
+                lectionDao.delete(lection)
+            }
+            withContext(Dispatchers.Main) {
+                GetLectionsTask().execute()
+            }
+        }
+    }
+
+
+
+
+
     private inner class UpdateLectionTask(
         private val lectionId: Int?,
         private val title: String,
@@ -187,6 +250,22 @@ class MainActivity : AppCompatActivity() {
             GetLectionsTask().execute()
         }
     }
+
+    private fun deleteLection(lectionId: Int?) {
+        if (lectionId != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val lectionToDelete = lectionDao.getLectionById(lectionId)
+                if (lectionToDelete != null) {
+                    lectionDao.delete(lectionToDelete)
+                }
+                withContext(Dispatchers.Main) {
+                    // Обновить представление или выполнить другие операции на основном потоке
+                }
+            }
+        }
+
+    }
+
 
 
 }

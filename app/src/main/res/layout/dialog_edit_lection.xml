@@ -23,4 +23,6 @@
         android:textSize="16sp"
         android:hint="Текст лекции" />
 
+
+
 </LinearLayout>
