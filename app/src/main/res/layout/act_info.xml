@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <TextView
+        android:layout_width="115dp"
+        android:layout_height="100dp"
+        android:text="INFO"
+        android:textSize="50sp"
+        android:layout_marginStart="80dp"/>
+    <ImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@drawable/ic_info"
+        android:layout_marginStart="200dp"
+        />
+
+    <ImageButton
+        android:id="@+id/close_button"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:background="@drawable/ic_close"
+        android:layout_marginStart="300dp"
+        android:layout_marginTop="15dp"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:textSize="20sp"
+        android:layout_marginTop="110dp"
+        android:text="Добро пожаловать в Lecture! Здесь вы можете легко записывать, сохранять и просматривать свои лекции. Больше никакого беспорядка с бумажными конспектами или потери важной информации.Все ваши лекции будут аккуратно организованы и доступны в любое время.Вы также можете делиться своими записями или экспортировать их в удобном формате."
+                                />
+
+    Ф
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="80dp"
+        android:layout_marginEnd="5dp"
+        android:textSize="20sp"
+        android:layout_marginTop="680dp"
+        android:text="Приложение создано 17.05.2024"/>
+
+</FrameLayout>
